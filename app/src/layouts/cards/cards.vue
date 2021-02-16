@@ -403,6 +403,7 @@ export default defineComponent({
 				if (props.collection === 'directus_files' && imageSource.value === '$file') {
 					fields.push('modified_on');
 					fields.push('type');
+					fields.push('filename_download');
 				}
 
 				if (sort.value) {

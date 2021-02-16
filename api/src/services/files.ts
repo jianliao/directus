@@ -13,6 +13,8 @@ import { extension } from 'mime-types';
 import path from 'path';
 import env from '../env';
 import logger from '../logger';
+import { extractThumbnailToBuffer } from '@spectrum/xd-thumbnail-extractor';
+import { Duplex } from 'stream';
 
 export class FilesService extends ItemsService {
 	constructor(options: AbstractServiceOptions) {
@@ -104,6 +106,28 @@ export class FilesService extends ItemsService {
 			} catch (err) {
 				logger.warn(`Couldn't save file ${payload.filename_disk}`);
 				logger.warn(err);
+			}
+
+			// Try to extract the thumbnail from XD file without loading it into memory.
+			if ('application/octet-stream' === payload.type && path.extname(payload.filename_download) === '.xd') {
+				// Get Readable for XD asset
+				const fileStream = await storage.disk(data.storage).getStream(payload.filename_disk);
+				// Extract thumbnail buffer from XD asset
+				const thumbnailBuffer = await extractThumbnailToBuffer(fileStream);
+				// Create Readable for thumbnail
+				const tmpReadableStream = new Duplex();
+				tmpReadableStream.push(thumbnailBuffer);
+				tmpReadableStream.push(null); // End the buffer based readable stream
+				// Save the thumbnail with the same base name of original filename_disk and png as extension name
+				await storage
+					.disk(data.storage)
+					.put(`${path.basename(payload.filename_disk, path.extname(payload.filename_disk))}.png`, tmpReadableStream);
+				logger.info(
+					`Thumbnail ${path.basename(
+						payload.filename_disk,
+						path.extname(payload.filename_disk)
+					)}.png generated for XD asset ${payload.filename_download}`
+				);
 			}
 
 			const { size } = await storage.disk(data.storage).getStat(payload.filename_disk);

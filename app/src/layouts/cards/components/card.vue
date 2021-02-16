@@ -6,7 +6,13 @@
 			</div>
 			<v-skeleton-loader v-if="loading" />
 			<template v-else>
-				<p v-if="type" class="type type-title">{{ type }}</p>
+				<template v-if="type && fileExtension.toLowerCase() === 'xd'">
+					<!--<img class="image" loading="lazy" :src="xdThumbnailSource" alt="" role="presentation" />-->
+					<p class="type type-title">XD</p>
+				</template>
+				<template v-else-if="type">
+					<p class="type type-title">{{ type }}</p>
+				</template>
 				<template v-else>
 					<img class="image" loading="lazy" v-if="imageSource" :src="imageSource" alt="" role="presentation" />
 					<img class="svg" v-else-if="svgSource" :src="svgSource" alt="" role="presentation" />
@@ -116,7 +122,32 @@ export default defineComponent({
 			return props.value.includes(props.item[props.itemKey]) ? 'check_circle' : 'radio_button_unchecked';
 		});
 
-		return { imageSource, svgSource, type, selectionIcon, toggleSelection, handleClick };
+		const fileExtension = computed(() => {
+			if (!props.file.filename_download) return null;
+			return props.file.filename_download.split('.').pop();
+		});
+
+		const xdThumbnailSource = computed(() => {
+			let key = 'system-medium-cover';
+
+			if (props.crop === false) {
+				key = 'system-medium-contain';
+			}
+
+			const url = getRootPath() + `assets/${props.file.id}?key=${key}&modified=${props.file.modified_on}`;
+			return addTokenToURL(url);
+		});
+
+		return {
+			imageSource,
+			svgSource,
+			type,
+			selectionIcon,
+			toggleSelection,
+			handleClick,
+			fileExtension,
+			xdThumbnailSource,
+		};
 
 		function toggleSelection() {
 			if (!props.item) return null;
