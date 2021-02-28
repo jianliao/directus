@@ -1,17 +1,20 @@
 # Environment Variables
 
-> Environment Variables are used for all configuration within Directus projects. They are managed in the root `.env` file, which is created during the installation process.
+> Environment Variables are used for all configuration within Directus projects. They are managed in the root `.env`
+> file, which is created during the installation process.
 
 [[toc]]
 
 ## General
 
-| Variable     | Description                                                                                         | Default Value |
-| ------------ | --------------------------------------------------------------------------------------------------- | ------------- |
-| `PORT`       | What port to run the API under.                                                                     | `8055`        |
-| `PUBLIC_URL` | URL where your API can be reached on the web.                                                       | `/`           |
-| `LOG_LEVEL`  | What level of detail to log. One of `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent`. | `info`        |
-| `LOG_STYLE`  | Render the logs human readable (pretty) or as JSON. One of `pretty`, `raw`.                         | `pretty`      |
+| Variable           | Description                                                                                         | Default Value |
+| ------------------ | --------------------------------------------------------------------------------------------------- | ------------- |
+| `CONFIG_PATH`      | Where your config file is located. See [Config Files](/reference/config-files/)                     | `.env`        |
+| `PORT`             | What port to run the API under.                                                                     | `8055`        |
+| `PUBLIC_URL`       | URL where your API can be reached on the web.                                                       | `/`           |
+| `LOG_LEVEL`        | What level of detail to log. One of `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent`. | `info`        |
+| `LOG_STYLE`        | Render the logs human readable (pretty) or as JSON. One of `pretty`, `raw`.                         | `pretty`      |
+| `MAX_PAYLOAD_SIZE` | Controls the maximum request body size. Accepts number of bytes, or human readable string.          | `100kb`       |
 
 ## Database
 
@@ -25,12 +28,20 @@
 | `DB_PASSWORD`          | Database user's password. **Required** when using `pg`, `mysql`, `oracledb`, or `mssql`.                                                           | --            |
 | `DB_FILENAME`          | Where to read/write the SQLite database. **Required** when using `sqlite3`.                                                                        | --            |
 | `DB_CONNECTION_STRING` | When using `pg`, you can submit a connection string instead of individual properties. Using this will ignore any of the other connection settings. | --            |
+| `DB_POOL_*`            | Pooling settings. Passed on to [the `tarn.js`](https://github.com/vincit/tarn.js#usage) library.                                                   | --            |
 
 ::: tip Additional Database Variables
 
 All `DB_*` environment variables are passed to the `connection` configuration of a [`Knex` instance](http://knexjs.org).
 Based on your project's needs, you can extend the `DB_*` environment variables with any config you need to pass to the
 database instance.
+
+:::
+
+::: tip Pooling
+
+All the `DB_POOL_` prefixed options are passed [to `tarn.js`](https://github.com/vincit/tarn.js#usage) through
+[Knex](http://knexjs.org/#Installation-pooling)
 
 :::
 
@@ -45,12 +56,20 @@ database instance.
 | `REFRESH_TOKEN_COOKIE_SECURE`    | Whether or not to use a secure cookie for the refresh token in cookie mode.                      | `false`       |
 | `REFRESH_TOKEN_COOKIE_SAME_SITE` | Value for `sameSite` in the refresh token cookie when in cookie mode.                            | `lax`         |
 
+::: tip Cookie Strictness
+
+Browser are pretty strict when it comes to third-party cookies. If you're running into unexpected problems when running
+your project and API on different domains, make sure to verify your configuration for `REFRESH_TOKEN_COOKIE_SECURE` and
+`REFRESH_TOKEN_COOKIE_SAME_SITE`.
+
+:::
+
 ## CORS
 
 | Variable               | Description                                                                                                                                            | Default Value                |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------- |
 | `CORS_ENABLED`         | Whether or not to enable the CORS headers.                                                                                                             | `true`                       |
-| `CORS_ORIGIN`          | Value for the `Access-Control-Allow-Origin` header. Use `true` to match the Origin header, or provide a domain or a CSV of domains for specific access | --                           |
+| `CORS_ORIGIN`          | Value for the `Access-Control-Allow-Origin` header. Use `true` to match the Origin header, or provide a domain or a CSV of domains for specific access | `true`                       |
 | `CORS_METHODS`         | Value for the `Access-Control-Allow-Methods` header.                                                                                                   | `GET,POST,PATCH,DELETE`      |
 | `CORS_ALLOWED_HEADERS` | Value for the `Access-Control-Allow-Headers` header.                                                                                                   | `Content-Type,Authorization` |
 | `CORS_EXPOSED_HEADERS` | Value for the `Access-Control-Expose-Headers` header.                                                                                                  | `Content-Range`              |
@@ -145,10 +164,9 @@ Alternatively, you can provide the individual connection parameters:
 
 For each of the storage locations listed, you must provide the following configuration:
 
-| Variable                        | Description                                             | Default Value |
-| ------------------------------- | ------------------------------------------------------- | ------------- |
-| `STORAGE_<LOCATION>_PUBLIC_URL` | Location on the internet where the files are accessible |               |
-| `STORAGE_<LOCATION>_DRIVER`     | Which driver to use, either `local`, `s3`, or `gcs`     |               |
+| Variable                    | Description                                               | Default Value |
+| --------------------------- | --------------------------------------------------------- | ------------- |
+| `STORAGE_<LOCATION>_DRIVER` | Which driver to use, either `local`, `s3`, `gcs`, `azure` |               |
 
 Based on your configured driver, you must also provide the following configurations:
 
@@ -167,6 +185,14 @@ Based on your configured driver, you must also provide the following configurati
 | `STORAGE_<LOCATION>_ENDPOINT` | S3 Endpoint | --            |
 | `STORAGE_<LOCATION>_BUCKET`   | S3 Bucket   | --            |
 | `STORAGE_<LOCATION>_REGION`   | S3 Region   | --            |
+
+### Azure (`azure`)
+
+| Variable                            | Description                | Default Value |
+| ----------------------------------- | -------------------------- | ------------- |
+| `STORAGE_<LOCATION>_CONTAINER_NAME` | Azure Storage container    | --            |
+| `STORAGE_<LOCATION>_ACCOUNT_NAME`   | Azure Storage account name | --            |
+| `STORAGE_<LOCATION>_ACCOUNT_KEY`    | Azure Storage key          | --            |
 
 ### Google Cloud Storage (`gcs`)
 
@@ -285,3 +311,16 @@ DB_SSL__REJECT_UNAUTHORIZED="false"
 	}
 }
 ```
+
+## Environment Syntax Prefix
+
+Directus will attempt to automatically type cast environment variables based on context clues
+([see above](#type-casting-and-nesting)). If you have a specific need for a given type, you can tell Directus what type
+to use for the given value by prefixing the value with `{type}:`. The following types are available:
+
+| Syntax Prefix | Example                                          | Output                                           |
+| ------------- | ------------------------------------------------ | ------------------------------------------------ |
+| `string`      | `string:value`                                   | `"value"`                                        |
+| `number`      | `number:3306`                                    | `3306`                                           |
+| `regex`       | `regex:/\.example\.com$/`                        | `/\.example\.com$/`                              |
+| `array`       | `array:https://example.com,https://example2.com` | `["https://example.com","https://example2.com"]` |

@@ -132,8 +132,7 @@
 
 				<template #append-outer>
 					<save-options
-						v-if="collectionInfo.meta && collectionInfo.meta.singleton !== true"
-						:disabled="isSavable === false"
+						v-if="collectionInfo.meta && collectionInfo.meta.singleton !== true && isSavable === true"
 						@save-and-stay="saveAndStay"
 						@save-and-add-new="saveAndAddNew"
 						@save-as-copy="saveAsCopyAndNavigate"
@@ -175,7 +174,7 @@
 				<div class="page-description" v-html="marked($t('page_help_collections_item'))" />
 			</sidebar-detail>
 			<revisions-drawer-detail
-				v-if="isNew === false && _primaryKey && hasRevisionsPermissions"
+				v-if="isNew === false && _primaryKey && revisionsAllowed"
 				:collection="collection"
 				:primary-key="_primaryKey"
 				ref="revisionsDrawerDetail"
@@ -191,7 +190,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, toRefs, ref } from '@vue/composition-api';
+import { defineComponent, computed, toRefs, ref, onBeforeUnmount, onBeforeMount } from '@vue/composition-api';
 import Vue from 'vue';
 
 import CollectionsNavigation from '../components/navigation.vue';
@@ -206,8 +205,8 @@ import i18n from '@/lang';
 import marked from 'marked';
 import useShortcut from '@/composables/use-shortcut';
 import { NavigationGuard } from 'vue-router';
-import { usePermissionsStore } from '@/stores';
 import { usePermissions } from '@/composables/use-permissions';
+import unsavedChanges from '@/composables/unsaved-changes';
 
 export default defineComponent({
 	name: 'collections-item',
@@ -234,13 +233,6 @@ export default defineComponent({
 	},
 	setup(props) {
 		const form = ref<HTMLElement>();
-		const permissionsStore = usePermissionsStore();
-
-		const hasRevisionsPermissions = computed(() => {
-			return !!permissionsStore.state.permissions.find(
-				(permission) => permission.collection === 'directus_revisions' && permission.action === 'read'
-			);
-		});
 
 		const { collection, primaryKey } = toRefs(props);
 		const { breadcrumb } = useBreadcrumb();
@@ -287,6 +279,8 @@ export default defineComponent({
 			return hasEdits.value;
 		});
 
+		unsavedChanges(isSavable);
+
 		const confirmDelete = ref(false);
 		const confirmArchive = ref(false);
 
@@ -325,7 +319,7 @@ export default defineComponent({
 			return next();
 		};
 
-		const { deleteAllowed, archiveAllowed, saveAllowed, updateAllowed, fields } = usePermissions(
+		const { deleteAllowed, archiveAllowed, saveAllowed, updateAllowed, fields, revisionsAllowed } = usePermissions(
 			collection,
 			item,
 			isNew
@@ -380,7 +374,7 @@ export default defineComponent({
 			fields,
 			isSingleton,
 			_primaryKey,
-			hasRevisionsPermissions,
+			revisionsAllowed,
 		};
 
 		function useBreadcrumb() {

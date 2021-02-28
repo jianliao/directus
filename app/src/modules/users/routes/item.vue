@@ -85,7 +85,7 @@
 
 				<template #append-outer>
 					<save-options
-						:disabled="hasEdits === false"
+						v-if="hasEdits === true"
 						@save-and-stay="saveAndStay"
 						@save-and-add-new="saveAndAddNew"
 						@save-as-copy="saveAsCopyAndNavigate"
@@ -125,7 +125,7 @@
 
 			<v-form
 				ref="form"
-				:disabled="isNew ? createAllowed === false : updateAllowed === false"
+				:disabled="isNew ? false : updateAllowed === false"
 				:fields="formFields"
 				:loading="loading"
 				:initial-values="item"
@@ -151,7 +151,7 @@
 		<template #sidebar>
 			<user-info-sidebar-detail :is-new="isNew" :user="item" />
 			<revisions-drawer-detail
-				v-if="isBatch === false && isNew === false && hasRevisionsPermissions"
+				v-if="isBatch === false && isNew === false && revisionsAllowed"
 				collection="directus_users"
 				:primary-key="primaryKey"
 				ref="revisionsDrawerDetail"
@@ -176,7 +176,7 @@ import CommentsSidebarDetail from '@/views/private/components/comments-sidebar-d
 import useItem from '@/composables/use-item';
 import SaveOptions from '@/views/private/components/save-options';
 import api from '@/api';
-import { useFieldsStore, useCollectionsStore, useUserStore } from '@/stores/';
+import { useFieldsStore, useCollectionsStore } from '@/stores/';
 import useFormFields from '@/composables/use-form-fields';
 import { Field } from '@/types';
 import UserInfoSidebarDetail from '../components/user-info-sidebar-detail.vue';
@@ -187,7 +187,8 @@ import { userName } from '@/utils/user-name';
 import { usePermissions } from '@/composables/use-permissions';
 import { unexpectedError } from '@/utils/unexpected-error';
 import { addTokenToURL } from '@/api';
-import { usePermissionsStore } from '@/stores';
+import { useUserStore } from '@/stores';
+import unsavedChanges from '@/composables/unsaved-changes';
 
 export default defineComponent({
 	name: 'users-item',
@@ -219,13 +220,6 @@ export default defineComponent({
 		const fieldsStore = useFieldsStore();
 		const collectionsStore = useCollectionsStore();
 		const userStore = useUserStore();
-		const permissionsStore = usePermissionsStore();
-
-		const hasRevisionsPermissions = computed(() => {
-			return !!permissionsStore.state.permissions.find(
-				(permission) => permission.collection === 'directus_revisions' && permission.action === 'read'
-			);
-		});
 
 		const { primaryKey } = toRefs(props);
 		const { breadcrumb } = useBreadcrumb();
@@ -240,7 +234,6 @@ export default defineComponent({
 			item,
 			saving,
 			loading,
-			error,
 			save,
 			remove,
 			deleting,
@@ -259,6 +252,8 @@ export default defineComponent({
 		}
 
 		const hasEdits = computed<boolean>(() => Object.keys(edits.value).length > 0);
+
+		unsavedChanges(hasEdits);
 
 		const confirmDelete = ref(false);
 		const confirmArchive = ref(false);
@@ -299,7 +294,7 @@ export default defineComponent({
 
 		const { formFields } = useFormFields(fieldsFiltered);
 
-		const { deleteAllowed, archiveAllowed, saveAllowed, updateAllowed } = usePermissions(
+		const { deleteAllowed, archiveAllowed, saveAllowed, updateAllowed, revisionsAllowed } = usePermissions(
 			ref('directus_users'),
 			item,
 			isNew
@@ -351,7 +346,7 @@ export default defineComponent({
 			archiveTooltip,
 			form,
 			userName,
-			hasRevisionsPermissions,
+			revisionsAllowed,
 		};
 
 		function useBreadcrumb() {
@@ -538,8 +533,8 @@ export default defineComponent({
 
 		display: flex;
 		flex-shrink: 0;
-		align-items: center;
 		justify-content: center;
+		align-items: center;
 		width: 84px;
 		height: 84px;
 		margin-right: 16px;
@@ -568,6 +563,7 @@ export default defineComponent({
 
 	.user-box-content {
 		flex-grow: 1;
+		overflow: hidden;
 
 		.v-skeleton-loader {
 			width: 175px;
@@ -597,10 +593,22 @@ export default defineComponent({
 		.location {
 			color: var(--foreground-subdued);
 		}
+
+		.name {
+			white-space: nowrap;
+		}
+
+		.location {
+			display: none;
+		}
 	}
 
 	@include breakpoint(small) {
 		height: 172px;
+
+		.user-box-content .location {
+			display: block;
+		}
 	}
 }
 </style>

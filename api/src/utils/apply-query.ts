@@ -6,18 +6,14 @@ import { nanoid } from 'nanoid';
 import getLocalType from './get-local-type';
 import validate from 'uuid-validate';
 
-export default async function applyQuery(
-	collection: string,
-	dbQuery: QueryBuilder,
-	query: Query,
-	schema: SchemaOverview
-) {
-	if (query.filter) {
-		await applyFilter(schema, dbQuery, query.filter, collection);
-	}
-
+export default function applyQuery(collection: string, dbQuery: QueryBuilder, query: Query, schema: SchemaOverview) {
 	if (query.sort) {
-		dbQuery.orderBy(query.sort);
+		dbQuery.orderBy(
+			query.sort.map((sort) => ({
+				...sort,
+				column: `${collection}.${sort.column}`,
+			}))
+		);
 	}
 
 	if (typeof query.limit === 'number') {
@@ -36,38 +32,16 @@ export default async function applyQuery(
 		dbQuery.limit(1).first();
 	}
 
-	if (query.search) {
-		const columns = Object.values(schema.tables[collection].columns);
+	if (query.filter) {
+		applyFilter(schema, dbQuery, query.filter, collection);
+	}
 
-		dbQuery.andWhere(function () {
-			columns
-				.map((column) => ({
-					...column,
-					localType: getLocalType(column),
-				}))
-				.forEach((column) => {
-					if (['text', 'string'].includes(column.localType)) {
-						this.orWhereRaw(`LOWER(??) LIKE ?`, [
-							`${column.table_name}.${column.column_name}`,
-							`%${query.search!.toLowerCase()}%`,
-						]);
-					} else if (['bigInteger', 'integer', 'decimal', 'float'].includes(column.localType)) {
-						const number = Number(query.search!);
-						if (!isNaN(number)) this.orWhere({ [`${column.table_name}.${column.column_name}`]: number });
-					} else if (column.localType === 'uuid' && validate(query.search!)) {
-						this.orWhere({ [`${column.table_name}.${column.column_name}`]: query.search! });
-					}
-				});
-		});
+	if (query.search) {
+		applySearch(schema, dbQuery, query.search, collection);
 	}
 }
 
-export async function applyFilter(
-	schema: SchemaOverview,
-	rootQuery: QueryBuilder,
-	rootFilter: Filter,
-	collection: string
-) {
+export function applyFilter(schema: SchemaOverview, rootQuery: QueryBuilder, rootFilter: Filter, collection: string) {
 	const relations: Relation[] = [...schema.relations, ...systemRelationRows];
 
 	const aliasMap: Record<string, string> = {};
@@ -293,10 +267,40 @@ export async function applyFilter(
 	}
 }
 
+export async function applySearch(
+	schema: SchemaOverview,
+	dbQuery: QueryBuilder,
+	searchQuery: string,
+	collection: string
+) {
+	const columns = Object.values(schema.tables[collection].columns);
+
+	dbQuery.andWhere(function () {
+		columns
+			.map((column) => ({
+				...column,
+				localType: getLocalType(column),
+			}))
+			.forEach((column) => {
+				if (['text', 'string'].includes(column.localType)) {
+					this.orWhereRaw(`LOWER(??) LIKE ?`, [
+						`${column.table_name}.${column.column_name}`,
+						`%${searchQuery.toLowerCase()}%`,
+					]);
+				} else if (['bigInteger', 'integer', 'decimal', 'float'].includes(column.localType)) {
+					const number = Number(searchQuery);
+					if (!isNaN(number)) this.orWhere({ [`${column.table_name}.${column.column_name}`]: number });
+				} else if (column.localType === 'uuid' && validate(searchQuery)) {
+					this.orWhere({ [`${column.table_name}.${column.column_name}`]: searchQuery });
+				}
+			});
+	});
+}
+
 function getFilterPath(key: string, value: Record<string, any>) {
 	const path = [key];
 
-	if (Object.keys(value)[0].startsWith('_') === true) {
+	if (typeof Object.keys(value)[0] === 'string' && Object.keys(value)[0].startsWith('_') === true) {
 		return path;
 	}
 

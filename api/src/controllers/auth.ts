@@ -21,7 +21,7 @@ const loginSchema = Joi.object({
 	password: Joi.string().required(),
 	mode: Joi.string().valid('cookie', 'json'),
 	otp: Joi.string(),
-});
+}).unknown();
 
 router.post(
 	'/login',
@@ -40,19 +40,15 @@ router.post(
 		const { error } = loginSchema.validate(req.body);
 		if (error) throw new InvalidPayloadException(error.message);
 
-		const { email, password, otp } = req.body;
-
 		const mode = req.body.mode || 'json';
 
 		const ip = req.ip;
 		const userAgent = req.get('user-agent');
 
 		const { accessToken, refreshToken, expires } = await authenticationService.authenticate({
+			...req.body,
 			ip,
 			userAgent,
-			email,
-			password,
-			otp,
 		});
 
 		const payload = {
@@ -67,7 +63,7 @@ router.post(
 			res.cookie('directus_refresh_token', refreshToken, {
 				httpOnly: true,
 				maxAge: ms(env.REFRESH_TOKEN_TTL as string),
-				secure: env.REFRESH_TOKEN_COOKIE_SECURE === 'true' ? true : false,
+				secure: env.REFRESH_TOKEN_COOKIE_SECURE ?? false,
 				sameSite: (env.REFRESH_TOKEN_COOKIE_SAME_SITE as 'lax' | 'strict' | 'none') || 'strict',
 			});
 		}
@@ -115,7 +111,7 @@ router.post(
 			res.cookie('directus_refresh_token', refreshToken, {
 				httpOnly: true,
 				maxAge: ms(env.REFRESH_TOKEN_TTL as string),
-				secure: env.REFRESH_TOKEN_COOKIE_SECURE === 'true' ? true : false,
+				secure: env.REFRESH_TOKEN_COOKIE_SECURE ?? false,
 				sameSite: (env.REFRESH_TOKEN_COOKIE_SAME_SITE as 'lax' | 'strict' | 'none') || 'strict',
 			});
 		}
@@ -266,7 +262,7 @@ router.get(
 			res.cookie('directus_refresh_token', refreshToken, {
 				httpOnly: true,
 				maxAge: ms(env.REFRESH_TOKEN_TTL as string),
-				secure: env.REFRESH_TOKEN_COOKIE_SECURE === 'true' ? true : false,
+				secure: env.REFRESH_TOKEN_COOKIE_SECURE ?? false,
 				sameSite: (env.REFRESH_TOKEN_COOKIE_SAME_SITE as 'lax' | 'strict' | 'none') || 'strict',
 			});
 

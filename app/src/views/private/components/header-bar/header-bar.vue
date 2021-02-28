@@ -20,9 +20,9 @@
 					<slot name="title:append" />
 				</slot>
 			</div>
-		</div>
 
-		<slot name="title-outer:append" />
+			<slot name="title-outer:append" />
+		</div>
 
 		<div class="spacer" />
 
@@ -90,8 +90,8 @@ export default defineComponent({
 	left: 0;
 	z-index: 5;
 	display: flex;
-	align-items: center;
 	justify-content: flex-start;
+	align-items: center;
 	width: 100%;
 	height: 65px;
 	margin: 0;
@@ -118,6 +118,7 @@ export default defineComponent({
 		position: relative;
 		display: flex;
 		align-items: center;
+		width: 100%;
 		max-width: calc(100% - 12px - 44px - 120px - 12px - 8px);
 		height: 100%;
 		margin-left: 16px;

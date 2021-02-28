@@ -25,6 +25,7 @@ connection_excellent: Excellent Connection
 connection_good: Good Connection
 connection_fair: Fair Connection
 connection_poor: Poor Connection
+primary: Primary
 rename_folder: Rename Folder
 delete_folder: Delete Folder
 prefix: Prefix
@@ -89,6 +90,7 @@ field_presentation: Presentation & Aliases
 field_file: Single File
 field_files: Multiple Files
 field_m2o: M2O Relationship
+field_m2a: M2A Relationship
 field_o2m: O2M Relationship
 field_m2m: M2M Relationship
 field_translations: Translations
@@ -123,7 +125,7 @@ schema_setup_title: How should this field save to the database?
 schema_field_title: How should this field behave in the app?
 create_field: Create Field
 creating_new_field: 'New Field ({collection})'
-updating_field_field: '{field} ({collection})'
+field_in_collection: '{field} ({collection})'
 reset_page_preferences: Reset Page Preferences
 hidden_field: Hidden Field
 hidden_on_detail: Hidden on Detail
@@ -154,6 +156,9 @@ click_to_manage_translated_fields: >-
   There are no translated fields yet. Click here to create them. | There is one translated field. Click here to manage
   it. | There are {count} translated fields. Click here to manage them.
 fields_group: Fields Group
+new_data_alert: 'The following will be created within your Data Model:'
+new_field: 'New Field'
+new_collection: 'New Collection'
 configure_m2o: Configure your Many-to-One Relationship...
 configure_o2m: Configure your One-to-Many Relationship...
 configure_m2m: Configure your Many-to-Many Relationship...
@@ -363,6 +368,7 @@ collection_created: Collection Created
 modified_on: Modified On
 card_size: Card Size
 sort_field: Sort Field
+add_sort_field: Add Sort Field
 sort: Sort
 status: Status
 toggle_manual_sorting: Toggle Manual Sorting
@@ -417,17 +423,23 @@ delete_collection: Delete Collection
 update_collection_success: Updated Collection
 delete_collection_success: Deleted Collection
 start_end_of_count_items: '{start}-{end} of {count} items'
+start_end_of_count_filtered_items: '{start}-{end} of {count} filtered items'
+one_item: '1 item'
+one_filtered_item: '1 filtered item'
 delete_collection_are_you_sure: >-
   Are you sure you want to delete this collection? This will delete the collection and all items in it. This action is
   permanent.
 collections_shown: Collections Shown
 visible_collections: Visible Collections
 hidden_collections: Hidden Collections
+show_hidden_collections: Show Hidden Collections
+hide_hidden_collections: Hide Hidden Collections
 unmanaged_collections: Unconfigured Collections
 system_collections: System Collections
 placeholder: Placeholder
 icon_left: Icon Left
 icon_right: Icon Right
+count_other_revisions: '{count} Other Revisions'
 font: Font
 sans_serif: Sans Serif
 serif: Serif
@@ -576,6 +588,7 @@ scope: Scope
 layout: Layout
 changes_are_permanent: Changes are permanent
 preset_name_placeholder: Name of bookmark...
+preset_search_placeholder: Search query...
 editing_preset: Editing Preset
 layout_preview: Layout Preview
 layout_setup: Layout Setup
@@ -801,6 +814,15 @@ view_project: View Project
 weeks: {}
 report_error: Report Error
 interfaces:
+  button-links:
+    button-links: Button Links
+    links: Links
+    description: Configurable link buttons for launching dynamic URLs
+    style: Style
+    primary: Primary
+    link: Links
+    button: Buttons
+    error: Cannot perform action
   checkboxes:
     checkboxes: Checkboxes
     description: Choose between multiple options via checkboxes

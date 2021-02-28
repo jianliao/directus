@@ -71,8 +71,8 @@ body {
 .v-progress-linear {
 	position: relative;
 	display: flex;
-	align-items: center;
 	justify-content: center;
+	align-items: center;
 	width: 100%;
 	height: var(--v-progress-linear-height);
 	overflow: hidden;
@@ -119,11 +119,11 @@ body {
 
 @keyframes indeterminate {
 	0% {
-		transform: scaleX(0);
+		transform: scaleX(0) translateX(-30%);
 	}
 
 	10% {
-		transform: scaleX(0);
+		transform: scaleX(0) translateX(-30%);
 		animation-timing-function: cubic-bezier(0.1, 0.6, 0.9, 0.5);
 	}
 

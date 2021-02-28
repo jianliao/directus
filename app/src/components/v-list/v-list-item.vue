@@ -116,9 +116,9 @@ body {
 
 	position: relative;
 	display: flex;
-	flex-basis: 100%;
 	flex-grow: 1;
 	flex-shrink: 1;
+	flex-basis: 100%;
 	align-items: center;
 	min-width: var(--v-list-item-min-width);
 	max-width: var(--v-list-item-max-width);
@@ -141,8 +141,8 @@ body {
 			width: calc(100% - 4px);
 			height: calc(100% - 4px);
 			border: 2px dashed var(--border-normal);
-			content: '';
 			pointer-events: none;
+			content: '';
 		}
 	}
 
@@ -176,7 +176,7 @@ body {
 
 	&.dense {
 		::v-deep .v-text-overflow {
-			color: var(--foreground-subdued);
+			color: var(--foreground-normal);
 		}
 
 		&:hover,

@@ -221,14 +221,17 @@ export default defineComponent({
 
 		const { sort, limit, page, fields, fieldsWithRelational } = useItemOptions();
 
-		const { items, loading, error, totalPages, itemCount, changeManualSort, getItems } = useItems(collection, {
-			sort,
-			limit,
-			page,
-			fields: fieldsWithRelational,
-			filters: _filters,
-			searchQuery: _searchQuery,
-		});
+		const { items, loading, error, totalPages, itemCount, totalCount, changeManualSort, getItems } = useItems(
+			collection,
+			{
+				sort,
+				limit,
+				page,
+				fields: fieldsWithRelational,
+				filters: _filters,
+				searchQuery: _searchQuery,
+			}
+		);
 
 		const {
 			tableSort,
@@ -241,6 +244,19 @@ export default defineComponent({
 		} = useTable();
 
 		const showingCount = computed(() => {
+			if ((itemCount.value || 0) < (totalCount.value || 0)) {
+				if (itemCount.value === 1) {
+					return i18n.t('one_filtered_item');
+				}
+				return i18n.t('start_end_of_count_filtered_items', {
+					start: i18n.n((+page.value - 1) * limit.value + 1),
+					end: i18n.n(Math.min(page.value * limit.value, itemCount.value || 0)),
+					count: i18n.n(itemCount.value || 0),
+				});
+			}
+			if (itemCount.value === 1) {
+				return i18n.t('one_item');
+			}
 			return i18n.t('start_end_of_count_items', {
 				start: i18n.n((+page.value - 1) * limit.value + 1),
 				end: i18n.n(Math.min(page.value * limit.value, itemCount.value || 0)),
@@ -283,6 +299,7 @@ export default defineComponent({
 			page,
 			toPage,
 			itemCount,
+			totalCount,
 			fieldsInCollection,
 			fields,
 			limit,
@@ -369,7 +386,12 @@ export default defineComponent({
 						if (Array.isArray(_layoutQuery.value.fields)) return _layoutQuery.value.fields;
 					}
 
-					const fields = _layoutQuery.value?.fields || fieldsInCollection.value.slice(0, 4).map(({ field }) => field);
+					const fields =
+						_layoutQuery.value?.fields ||
+						fieldsInCollection.value
+							.filter((field) => !!field.meta?.hidden === false)
+							.slice(0, 4)
+							.map(({ field }) => field);
 
 					return fields;
 				},
@@ -557,8 +579,8 @@ export default defineComponent({
 	position: sticky;
 	left: 0;
 	display: flex;
-	align-items: center;
 	justify-content: space-between;
+	align-items: center;
 	width: 100%;
 	padding: 32px var(--content-padding);
 
@@ -568,8 +590,8 @@ export default defineComponent({
 
 	.per-page {
 		display: flex;
-		align-items: center;
 		justify-content: flex-end;
+		align-items: center;
 		width: 240px;
 		color: var(--foreground-subdued);
 

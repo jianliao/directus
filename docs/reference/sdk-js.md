@@ -1,7 +1,7 @@
 # JavaScript SDK
 
-> The JS SDK is a small wrapper around [Axios](https://npmjs.com/axios) that makes it a little easier to use the Directus
-API from a JavaScript powered project.
+> The JS SDK is a small wrapper around [Axios](https://npmjs.com/axios) that makes it a little easier to use the
+> Directus API from a JavaScript powered project.
 
 [[toc]]
 
@@ -10,6 +10,10 @@ API from a JavaScript powered project.
 ```bash
 npm install @directus/sdk-js
 ```
+
+## TypeScript
+
+If you are using TypeScript, the JS SDK requires TypeScript 3.8 or newer.
 
 ## Usage
 
@@ -75,7 +79,6 @@ directus.url = 'https://api2.example.com';
 ### Access to Axios
 
 You can tap into the Axios instance used directly through `directus.axios`.
-
 
 ## Items
 
@@ -221,7 +224,6 @@ directus.items('articles').delete(15);
 directus.items('articles').delete([15, 42]);
 ```
 
-
 ## Activity
 
 ### Read All Activity
@@ -287,7 +289,6 @@ directus.activity.comments.delete(31);
 ```
 
 Note: The passed key is the primary key of the comment
-
 
 ## Auth
 
@@ -361,7 +362,6 @@ directus.auth.password.reset('abc.def.ghi', 'n3w-p455w0rd');
 
 Note: the token passed in the first parameter is sent in an email to the user when using `request()`
 
-
 ## Collections
 
 ```js
@@ -369,7 +369,6 @@ directus.collections;
 ```
 
 Same methods as `directus.items(collection)`.
-
 
 ## Fields
 
@@ -379,7 +378,6 @@ directus.fields;
 
 Same methods as `directus.items(collection)`.
 
-
 ## Files
 
 ```js
@@ -387,7 +385,6 @@ directus.files;
 ```
 
 Same methods as `directus.items(collection)`.
-
 
 ## Folders
 
@@ -397,7 +394,6 @@ directus.folders;
 
 Same methods as `directus.items(collection)`.
 
-
 ## Permissions
 
 ```js
@@ -405,7 +401,6 @@ directus.permissions;
 ```
 
 Same methods as `directus.items(collection)`.
-
 
 ## Presets
 
@@ -415,7 +410,6 @@ directus.presets;
 
 Same methods as `directus.items(collection)`.
 
-
 ## Relations
 
 ```js
@@ -423,7 +417,6 @@ directus.relations;
 ```
 
 Same methods as `directus.items(collection)`.
-
 
 ## Revisions
 
@@ -433,7 +426,6 @@ directus.revisions;
 
 Same methods as `directus.items(collection)`.
 
-
 ## Roles
 
 ```js
@@ -441,7 +433,6 @@ directus.roles;
 ```
 
 Same methods as `directus.items(collection)`.
-
 
 ## Server
 
@@ -463,7 +454,6 @@ directus.server.ping();
 directus.server.info();
 ```
 
-
 ## Settings
 
 ```js
@@ -471,7 +461,6 @@ directus.settings;
 ```
 
 Same methods as `directus.items(collection)`.
-
 
 ## Users
 

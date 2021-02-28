@@ -1,10 +1,13 @@
 # Running Locally
 
-> This guide explains how to install the _Development_ version of Directus locally so that you can work on the platform's source code. To install the _Production_ version locally, please follow to our [standard installation guides](/getting-started/installation/).
+> This guide explains how to install the _Development_ version of Directus locally so that you can work on the
+> platform's source code. To install the _Production_ version locally, please follow to our
+> [standard installation guides](/getting-started/installation/).
 
 ::: tip Minimum Requirements
 
-You will need to have a **minimum of Node 12+** to _build_ a Development version of Directus, though it is recommended that you are on the [most "current" version of Node.js](https://nodejs.dev/en/about/releases/).
+You will need to have [the latest version of Node](https://nodejs.org/en/download/current/) to _build_ a Development
+version of Directus.
 
 :::
 
@@ -49,7 +52,8 @@ Run the following command from the root directory.
 npm run dev
 ```
 
-If you are only looking to work on the Documentation (public website version), you can navigate to the `docs` directory and run the following command:
+If you are only looking to work on the Documentation (public website version), you can navigate to the `docs` directory
+and run the following command:
 
 ```bash
 npm run dev:site
