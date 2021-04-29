@@ -486,8 +486,8 @@ export default defineComponent({
 
 .footer {
 	display: flex;
-	justify-content: space-between;
 	align-items: center;
+	justify-content: space-between;
 	padding-top: 40px;
 
 	.pagination {
@@ -496,8 +496,8 @@ export default defineComponent({
 
 	.per-page {
 		display: flex;
-		justify-content: flex-end;
 		align-items: center;
+		justify-content: flex-end;
 		width: 240px;
 		color: var(--foreground-subdued);
 

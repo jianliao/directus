@@ -90,8 +90,8 @@ export default defineComponent({
 	left: 0;
 	z-index: 5;
 	display: flex;
-	justify-content: flex-start;
 	align-items: center;
+	justify-content: flex-start;
 	width: 100%;
 	height: 65px;
 	margin: 0;

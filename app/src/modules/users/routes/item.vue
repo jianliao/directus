@@ -542,8 +542,8 @@ export default defineComponent({
 
 		display: flex;
 		flex-shrink: 0;
-		justify-content: center;
 		align-items: center;
+		justify-content: center;
 		width: 84px;
 		height: 84px;
 		margin-right: 16px;

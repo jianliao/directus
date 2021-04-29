@@ -94,8 +94,8 @@ body {
 			--v-icon-color: var(--sidebar-detail-icon-color);
 
 			display: flex;
-			justify-content: center;
 			align-items: center;
+			justify-content: center;
 			width: 64px;
 			height: 100%;
 		}
@@ -115,8 +115,8 @@ body {
 		right: 0;
 		z-index: 50;
 		display: flex;
-		justify-content: center;
 		align-items: center;
+		justify-content: center;
 		width: 64px;
 		height: 64px;
 		color: var(--foreground-normal);

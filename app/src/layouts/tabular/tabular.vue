@@ -592,8 +592,8 @@ export default defineComponent({
 	position: sticky;
 	left: 0;
 	display: flex;
-	justify-content: space-between;
 	align-items: center;
+	justify-content: space-between;
 	width: 100%;
 	padding: 32px var(--content-padding);
 
@@ -603,8 +603,8 @@ export default defineComponent({
 
 	.per-page {
 		display: flex;
-		justify-content: flex-end;
 		align-items: center;
+		justify-content: flex-end;
 		width: 240px;
 		color: var(--foreground-subdued);
 

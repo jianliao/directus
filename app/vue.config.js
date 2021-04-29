@@ -20,7 +20,6 @@ module.exports = {
 
 	configureWebpack: {
 		plugins: [new WebpackAssetsManifest({ output: 'assets.json' })],
-		devtool: 'source-map',
 	},
 
 	// There are so many chunks (from all the interfaces / layouts) that we need to make sure to not
