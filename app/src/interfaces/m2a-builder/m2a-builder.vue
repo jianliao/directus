@@ -4,44 +4,71 @@
 			<v-skeleton-loader v-for="n in (value || []).length" :key="n" />
 		</div>
 
-		<draggable
-			v-else
-			:value="previewValues"
-			handle=".drag-handle"
-			@input="onSort"
-			:set-data="hideDragImage"
-			:disabled="!o2mRelation.sort_field"
-		>
-			<div
-				class="m2a-row"
-				v-for="item of previewValues"
-				:key="item.$index"
-				@click="editExisting((value || [])[item.$index])"
+		<v-list v-else>
+			<v-notice v-if="previewValues.length === 0">
+				{{ $t('no_items') }}
+			</v-notice>
+
+			<draggable
+				:force-fallback="true"
+				:value="previewValues"
+				@input="onSort"
+				:set-data="hideDragImage"
+				:disabled="!o2mRelation.sort_field"
 			>
-				<v-icon class="drag-handle" name="drag_handle" @click.stop v-if="o2mRelation.sort_field" />
-				<span class="collection">{{ collections[item[anyRelation.one_collection_field]].name }}:</span>
-				<span
-					v-if="typeof item[anyRelation.many_field] === 'number' || typeof item[anyRelation.many_field] === 'string'"
-				>
-					{{ item[anyRelation.many_field] }}
-				</span>
-				<render-template
-					v-else
-					:collection="item[anyRelation.one_collection_field]"
-					:template="templates[item[anyRelation.one_collection_field]]"
-					:item="item[anyRelation.many_field]"
-				/>
-				<div class="spacer" />
-				<v-icon class="clear-icon" name="clear" @click.stop="deselect((value || [])[item.$index])" />
-				<v-icon class="launch-icon" name="launch" />
-			</div>
-		</draggable>
+				<template v-for="item of previewValues">
+					<v-list-item
+						:key="item.$index"
+						v-if="allowedCollections.includes(item[anyRelation.one_collection_field])"
+						block
+						:dense="previewValues.length > 4"
+						@click="editExisting((value || [])[item.$index])"
+					>
+						<v-icon class="drag-handle" left name="drag_handle" @click.stop v-if="o2mRelation.sort_field" />
+						<span class="collection">{{ collections[item[anyRelation.one_collection_field]].name }}:</span>
+						<span
+							v-if="
+								typeof item[anyRelation.many_field] === 'number' || typeof item[anyRelation.many_field] === 'string'
+							"
+						>
+							{{ item[anyRelation.many_field] }}
+						</span>
+						<render-template
+							v-else
+							:collection="item[anyRelation.one_collection_field]"
+							:template="templates[item[anyRelation.one_collection_field]]"
+							:item="item[anyRelation.many_field]"
+						/>
+						<div class="spacer" />
+						<v-icon
+							v-if="!disabled"
+							class="clear-icon"
+							name="clear"
+							@click.stop="deselect((value || [])[item.$index])"
+						/>
+					</v-list-item>
+
+					<v-list-item v-else :key="item.$index" block>
+						<v-icon class="invalid-icon" name="warning" left />
+						<span>{{ $t('invalid_item') }}</span>
+						<div class="spacer" />
+						<v-icon
+							v-if="!disabled"
+							class="clear-icon"
+							name="clear"
+							@click.stop="deselect((value || [])[item.$index])"
+						/>
+					</v-list-item>
+				</template>
+			</draggable>
+		</v-list>
 
 		<div class="buttons">
-			<v-menu attached>
+			<v-menu show-arrow>
 				<template #activator="{ toggle }">
-					<v-button dashed outlined full-width @click="toggle">
+					<v-button @click="toggle">
 						{{ $t('create_new') }}
+						<v-icon name="arrow_drop_down" right />
 					</v-button>
 				</template>
 
@@ -57,10 +84,11 @@
 				</v-list>
 			</v-menu>
 
-			<v-menu attached>
+			<v-menu show-arrow>
 				<template #activator="{ toggle }">
-					<v-button dashed outlined full-width @click="toggle">
+					<v-button @click="toggle" class="existing">
 						{{ $t('add_existing') }}
+						<v-icon name="arrow_drop_down" right />
 					</v-button>
 				</template>
 
@@ -86,7 +114,6 @@
 			@input="stageSelection"
 			@update:active="selectingFrom = null"
 		/>
-		<!-- :filters="selectionFilters" -->
 
 		<drawer-item
 			v-if="!disabled"
@@ -96,6 +123,7 @@
 			:related-primary-key="relatedPrimaryKey || '+'"
 			:junction-field="o2mRelation.junction_field"
 			:edits="editsAtStart"
+			:circular-field="o2mRelation.many_field"
 			@input="stageEdits"
 			@update:active="cancelEdit"
 		/>
@@ -145,9 +173,9 @@ export default defineComponent({
 		const fieldsStore = useFieldsStore();
 		const collectionsStore = useCollectionsStore();
 
-		const { o2mRelation, anyRelation } = useRelations();
-		const { collections, templates, primaryKeys } = useCollections();
+		const { o2mRelation, anyRelation, allowedCollections } = useRelations();
 		const { fetchValues, previewValues, loading: previewLoading, junctionRowMap, relatedItemValues } = useValues();
+		const { collections, templates, primaryKeys } = useCollections();
 		const { selectingFrom, stageSelection, deselect } = useSelection();
 		const {
 			currentlyEditing,
@@ -182,6 +210,7 @@ export default defineComponent({
 			relatedItemValues,
 			hideDragImage,
 			onSort,
+			allowedCollections,
 		};
 
 		function useRelations() {
@@ -192,12 +221,12 @@ export default defineComponent({
 			const o2mRelation = computed(() => relationsForField.value.find((relation) => relation.one_collection !== null)!);
 			const anyRelation = computed(() => relationsForField.value.find((relation) => relation.one_collection === null)!);
 
-			return { relationsForField, o2mRelation, anyRelation };
+			const allowedCollections = computed(() => anyRelation.value.one_allowed_collections!);
+
+			return { relationsForField, o2mRelation, anyRelation, allowedCollections };
 		}
 
 		function useCollections() {
-			const allowedCollections = computed(() => anyRelation.value.one_allowed_collections!);
-
 			const collections = computed<Record<string, Collection>>(() => {
 				const collections: Record<string, Collection> = {};
 
@@ -267,12 +296,17 @@ export default defineComponent({
 								$index: index,
 							};
 						} else {
+							if (savedValues === undefined) {
+								return null;
+							}
+
 							return {
 								...savedValues,
 								$index: index,
 							};
 						}
 					})
+					.filter((val) => val)
 					.map((val) => {
 						// Find and nest the related item values for use in the preview
 						const collection = val[anyRelation.value.one_collection_field!];
@@ -295,6 +329,7 @@ export default defineComponent({
 							} else {
 								val[anyRelation.value.many_field] = cloneDeep(item);
 							}
+						} else {
 						}
 
 						return val;
@@ -314,7 +349,13 @@ export default defineComponent({
 				}
 			});
 
-			return { fetchValues, previewValues, loading, junctionRowMap, relatedItemValues };
+			return {
+				fetchValues,
+				previewValues,
+				loading,
+				junctionRowMap,
+				relatedItemValues,
+			};
 
 			async function fetchValues() {
 				if (props.value === null) return;
@@ -388,9 +429,12 @@ export default defineComponent({
 						});
 
 						for (const junctionRow of junctionInfoResponse.data.data) {
-							itemsToFetchPerCollection[junctionRow[anyRelation.value.one_collection_field!]].push(
-								junctionRow[anyRelation.value.many_field]
-							);
+							const relatedCollection = junctionRow[anyRelation.value.one_collection_field!];
+
+							// When the collection exists in the setup
+							if (relatedCollection in itemsToFetchPerCollection) {
+								itemsToFetchPerCollection[relatedCollection].push(junctionRow[anyRelation.value.many_field]);
+							}
 						}
 
 						junctionRowMap.value = junctionInfoResponse.data.data;
@@ -593,6 +637,7 @@ export default defineComponent({
 							};
 						} else {
 							return {
+								...sortedItems[sortedItemIndex],
 								[o2mRelation.value.many_primary]: rawValue,
 								[o2mRelation.value.sort_field]: sortedItemIndex + 1,
 							};
@@ -606,19 +651,11 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.m2a-row {
-	display: flex;
-	align-items: center;
-	padding: 12px;
-	background-color: var(--background-subdued);
-	border: 2px solid var(--border-subdued);
-	border-radius: var(--border-radius);
-	cursor: pointer;
+.v-list {
+	--v-list-padding: 0 0 4px;
+}
 
-	& + .m2a-row {
-		margin-top: 12px;
-	}
-
+.v-list-item {
 	.collection {
 		margin-right: 1ch;
 		color: var(--primary);
@@ -636,19 +673,23 @@ export default defineComponent({
 }
 
 .buttons {
-	display: grid;
-	grid-gap: var(--form-horizontal-gap);
-	grid-template-columns: 1fr 1fr;
-	margin-top: 12px;
+	margin-top: 8px;
 }
 
-.spacer {
-	flex-grow: 1;
+.existing {
+	margin-left: 8px;
 }
 
 .drag-handle {
-	margin-right: 8px;
-	cursor: grab !important;
+	cursor: grab;
+}
+
+.invalid {
+	cursor: default;
+
+	.invalid-icon {
+		--v-icon-color: var(--danger);
+	}
 }
 
 .clear-icon {

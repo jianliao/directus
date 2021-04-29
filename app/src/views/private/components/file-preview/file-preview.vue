@@ -93,7 +93,6 @@ img,
 video,
 audio {
 	width: 100%;
-	height: 100%;
 	max-height: 100%;
 	object-fit: contain;
 	border-radius: var(--border-radius);
@@ -139,5 +138,10 @@ audio {
 	padding: 64px;
 	background-color: var(--background-normal);
 	border-radius: var(--border-radius);
+
+	&.max-size img {
+		// Max height - padding * 2
+		max-height: calc(75vh - 128px);
+	}
 }
 </style>

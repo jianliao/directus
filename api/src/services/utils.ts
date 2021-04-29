@@ -1,6 +1,6 @@
 import { AbstractServiceOptions, Accountability, PrimaryKey, SchemaOverview } from '../types';
 import database from '../database';
-import Knex from 'knex';
+import { Knex } from 'knex';
 import { InvalidPayloadException, ForbiddenException } from '../exceptions';
 import { systemCollectionRows } from '../database/system-data/collections';
 
@@ -42,7 +42,7 @@ export class UtilsService {
 			}
 		}
 
-		const primaryKeyField = this.schema.tables[collection].primary;
+		const primaryKeyField = this.schema.collections[collection].primary;
 
 		// Make sure all rows have a sort value
 		const countResponse = await this.knex.count('* as count').from(collection).whereNull(sortField).first();
@@ -62,6 +62,27 @@ export class UtilsService {
 				await this.knex(collection)
 					.update({ [sortField]: lastSortValue })
 					.where({ [primaryKeyField]: row[primaryKeyField] });
+			}
+		}
+
+		// Check to see if there's any duplicate values in the sort counts. If that's the case, we'll have to
+		// reset the count values, otherwise the sort operation will cause unexpected results
+		const duplicates = await this.knex
+			.select(sortField)
+			.count(sortField, { as: 'count' })
+			.groupBy(sortField)
+			.from(collection)
+			.having('count', '>', 1);
+
+		if (duplicates?.length > 0) {
+			const ids = await this.knex.select(primaryKeyField).from(collection).orderBy(sortField);
+
+			// This might not scale that well, but I don't really know how to accurately set all rows
+			// to a sequential value that works cross-DB vendor otherwise
+			for (let i = 0; i < ids.length; i++) {
+				await this.knex(collection)
+					.update({ [sortField]: i + 1 })
+					.where(ids[i]);
 			}
 		}
 

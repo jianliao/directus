@@ -1,8 +1,10 @@
-import express from 'express';
-import bodyParser from 'body-parser';
-import logger from './logger';
 import expressLogger from 'express-pino-logger';
+import cookieParser from 'cookie-parser';
+import bodyParser from 'body-parser';
+import express from 'express';
+import logger from './logger';
 import path from 'path';
+import qs from 'qs';
 
 import { validateDBConnection, isInstalled } from './database';
 
@@ -69,6 +71,7 @@ export default async function createApp() {
 
 	app.disable('x-powered-by');
 	app.set('trust proxy', true);
+	app.set('query parser', (str: string) => qs.parse(str, { depth: 10 }));
 
 	await emitAsyncSafe('init.before', { app });
 
@@ -87,6 +90,8 @@ export default async function createApp() {
 			return next();
 		});
 	});
+
+	app.use(cookieParser());
 
 	app.use(extractToken);
 
@@ -108,7 +113,14 @@ export default async function createApp() {
 		html = html.replace(/href="\//g, `href="${publicUrl}`);
 		html = html.replace(/src="\//g, `src="${publicUrl}`);
 
-		app.get('/', (req, res) => res.redirect(`./admin/`));
+		app.get('/', (req, res, next) => {
+			if (env.ROOT_REDIRECT) {
+				res.redirect(env.ROOT_REDIRECT);
+			} else {
+				next();
+			}
+		});
+
 		app.get('/admin', (req, res) => res.send(html));
 		app.use('/admin', express.static(path.join(adminPath, '..')));
 		app.use('/admin/*', (req, res) => {

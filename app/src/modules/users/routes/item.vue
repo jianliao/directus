@@ -1,7 +1,7 @@
 <template>
 	<private-view :title="title">
 		<template #title-outer:prepend>
-			<v-button class="header-icon" rounded icon secondary exact to="/users">
+			<v-button class="header-icon" rounded icon secondary exact @click="$router.back()">
 				<v-icon name="arrow_back" />
 			</v-button>
 		</template>
@@ -111,13 +111,19 @@
 						<v-skeleton-loader type="text" />
 						<v-skeleton-loader type="text" />
 					</template>
-					<template v-else-if="isNew === false">
-						<div class="name type-title">
+					<template v-else-if="isNew === false && item">
+						<div class="name type-label">
 							{{ userName(item) }}
 							<span v-if="item.title" class="title">, {{ item.title }}</span>
 						</div>
-						<div class="email">{{ item.email }}</div>
-						<div class="location" v-if="item.location">{{ item.location }}</div>
+						<div class="email">
+							<v-icon name="alternate_email" small outline />
+							{{ item.email }}
+						</div>
+						<div class="location" v-if="item.location">
+							<v-icon name="place" small outline />
+							{{ item.location }}
+						</div>
 						<v-chip :class="item.status" small v-if="roleName">{{ roleName }}</v-chip>
 					</template>
 				</div>
@@ -131,6 +137,7 @@
 				:initial-values="item"
 				:batch-mode="isBatch"
 				:primary-key="primaryKey"
+				:validation-errors="validationErrors"
 				v-model="edits"
 			/>
 		</div>
@@ -169,7 +176,8 @@
 import { defineComponent, computed, toRefs, ref, watch } from '@vue/composition-api';
 
 import UsersNavigation from '../components/navigation.vue';
-import { i18n, setLanguage } from '@/lang';
+import { i18n } from '@/lang';
+import { setLanguage } from '@/lang/set-language';
 import router from '@/router';
 import RevisionsDrawerDetail from '@/views/private/components/revisions-drawer-detail';
 import CommentsSidebarDetail from '@/views/private/components/comments-sidebar-detail';
@@ -242,6 +250,7 @@ export default defineComponent({
 			archive,
 			archiving,
 			isArchived,
+			validationErrors,
 		} = useItem(ref('directus_users'), primaryKey);
 
 		if (props.preset) {
@@ -261,7 +270,7 @@ export default defineComponent({
 		const title = computed(() => {
 			if (loading.value === true) return i18n.t('loading');
 
-			if (isNew.value === false && item.value !== null) {
+			if (isNew.value === false && item.value) {
 				const user = item.value as any;
 				return userName(user);
 			}
@@ -347,6 +356,7 @@ export default defineComponent({
 			form,
 			userName,
 			revisionsAllowed,
+			validationErrors,
 		};
 
 		function useBreadcrumb() {
@@ -381,7 +391,7 @@ export default defineComponent({
 				if (props.primaryKey === '+') {
 					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 					const newPrimaryKey = savedItem.id;
-					router.replace(`/collections/users/${newPrimaryKey}`);
+					router.replace(`/users/${newPrimaryKey}`);
 				}
 			} catch {
 				// `save` will show unexpected error dialog
@@ -493,16 +503,16 @@ export default defineComponent({
 @import '@/styles/mixins/breakpoint';
 
 .action-delete {
-	--v-button-background-color: var(--danger-25);
+	--v-button-background-color: var(--danger-10);
 	--v-button-color: var(--danger);
-	--v-button-background-color-hover: var(--danger-50);
+	--v-button-background-color-hover: var(--danger-25);
 	--v-button-color-hover: var(--danger);
 }
 
 .action-archive {
-	--v-button-background-color: var(--warning-25);
+	--v-button-background-color: var(--warning-10);
 	--v-button-color: var(--warning);
-	--v-button-background-color-hover: var(--warning-50);
+	--v-button-background-color-hover: var(--warning-25);
 	--v-button-color-hover: var(--warning);
 }
 
@@ -523,10 +533,9 @@ export default defineComponent({
 	max-width: calc(var(--form-column-max-width) * 2 + var(--form-horizontal-gap));
 	height: 112px;
 	margin-bottom: var(--form-vertical-gap);
-	padding: 12px;
-	background-color: var(--background-subdued);
-	border: 2px solid var(--border-normal);
-	border-radius: var(--border-radius);
+	padding: 20px;
+	background-color: var(--background-normal);
+	border-radius: calc(var(--border-radius) + 4px);
 
 	.avatar {
 		--v-icon-color: var(--foreground-subdued);
@@ -540,8 +549,9 @@ export default defineComponent({
 		margin-right: 16px;
 		overflow: hidden;
 		background-color: var(--background-normal);
-		border: solid var(--border-width) var(--border-normal);
-		border-radius: var(--border-radius);
+		border: solid 6px var(--white);
+		border-radius: 100%;
+		box-shadow: var(--card-shadow);
 
 		.v-skeleton-loader {
 			width: 100%;
@@ -604,7 +614,7 @@ export default defineComponent({
 	}
 
 	@include breakpoint(small) {
-		height: 172px;
+		height: 188px;
 
 		.user-box-content .location {
 			display: block;

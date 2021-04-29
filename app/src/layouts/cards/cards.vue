@@ -107,7 +107,12 @@
 
 				<div v-if="loading === false && items.length >= 25" class="per-page">
 					<span>{{ $t('per_page') }}</span>
-					<v-select @input="limit = +$event" :value="`${limit}`" :items="['25', '50', '100', '250']" inline />
+					<v-select
+						@input="limit = +$event"
+						:value="`${limit}`"
+						:items="['25', '50', '100', '250', '500', '1000']"
+						inline
+					/>
 				</div>
 			</div>
 		</template>
@@ -136,7 +141,7 @@ import useSync from '@/composables/use-sync/';
 import useCollection from '@/composables/use-collection/';
 import useItems from '@/composables/use-items';
 import Card from './components/card.vue';
-import getFieldsFromTemplate from '@/utils/get-fields-from-template';
+import { getFieldsFromTemplate } from '@/utils/get-fields-from-template';
 import { useRelationsStore } from '@/stores/';
 
 import CardsHeader from './components/header.vue';
@@ -224,7 +229,7 @@ export default defineComponent({
 
 		const fileFields = computed(() => {
 			return fieldsInCollection.value.filter((field) => {
-				if (field.field === '$file') return true;
+				if (field.field === '$thumbnail') return true;
 
 				const relation = relationsStore.state.relations.find((relation) => {
 					return (
@@ -414,7 +419,7 @@ export default defineComponent({
 					fields.push(`${imageSource.value}.id`);
 				}
 
-				if (props.collection === 'directus_files' && imageSource.value === '$file') {
+				if (props.collection === 'directus_files' && imageSource.value === '$thumbnail') {
 					fields.push('modified_on');
 					fields.push('type');
 					fields.push('filename_download');
@@ -446,7 +451,7 @@ export default defineComponent({
 
 		function getLinkForItem(item: Record<string, any>) {
 			if (!primaryKeyField.value) return;
-			return `/collections/${props.collection}/${item[primaryKeyField.value!.field]}`;
+			return `/collections/${props.collection}/${encodeURIComponent(item[primaryKeyField.value!.field])}`;
 		}
 
 		function selectAll() {

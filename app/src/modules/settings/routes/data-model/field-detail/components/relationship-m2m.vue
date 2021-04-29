@@ -1,7 +1,5 @@
 <template>
 	<div>
-		<v-notice type="info">{{ $t('configure_m2m') }}</v-notice>
-
 		<div class="grid">
 			<div class="field">
 				<div class="type-label">{{ $t('this_collection') }}</div>
@@ -17,7 +15,7 @@
 					:disabled="autoFill || isExisting"
 					db-safe
 				>
-					<template #append>
+					<template #append v-if="!isExisting">
 						<v-menu show-arrow placement="bottom-end">
 							<template #activator="{ toggle }">
 								<v-icon
@@ -58,6 +56,10 @@
 							</v-list>
 						</v-menu>
 					</template>
+
+					<template #input v-if="isExisting">
+						<v-text-overflow :text="junctionCollection" />
+					</template>
 				</v-input>
 			</div>
 			<div class="field">
@@ -73,7 +75,7 @@
 				>
 					<template #append>
 						<v-menu show-arrow placement="bottom-end">
-							<template #activator="{ toggle }">
+							<template #activator="{ toggle }" v-if="!isExisting">
 								<v-icon
 									name="list_alt"
 									@click="toggle"
@@ -112,6 +114,10 @@
 							</v-list>
 						</v-menu>
 					</template>
+
+					<template #input v-if="isExisting">
+						<v-text-overflow :text="relations[1].one_collection" />
+					</template>
 				</v-input>
 			</div>
 			<v-input disabled :value="relations[0].one_primary" />
@@ -123,7 +129,7 @@
 				:disabled="autoFill || isExisting"
 				db-safe
 			>
-				<template #append v-if="junctionCollectionExists">
+				<template #append v-if="junctionCollectionExists && !isExisting">
 					<v-menu show-arrow placement="bottom-end">
 						<template #activator="{ toggle }">
 							<v-icon
@@ -149,6 +155,10 @@
 						</v-list>
 					</v-menu>
 				</template>
+
+				<template #input v-if="isExisting">
+					<v-text-overflow :text="relations[0].many_field" />
+				</template>
 			</v-input>
 			<div class="spacer" />
 			<div class="spacer" />
@@ -160,7 +170,7 @@
 				:disabled="autoFill || isExisting"
 				db-safe
 			>
-				<template #append v-if="junctionCollectionExists">
+				<template #append v-if="junctionCollectionExists && !isExisting">
 					<v-menu show-arrow placement="bottom-end">
 						<template #activator="{ toggle }">
 							<v-icon
@@ -186,6 +196,10 @@
 						</v-list>
 					</v-menu>
 				</template>
+
+				<template #input v-if="isExisting">
+					<v-text-overflow :text="relations[1].many_field" />
+				</template>
 			</v-input>
 			<v-input
 				db-safe
@@ -195,7 +209,7 @@
 				:placeholder="$t('primary_key') + '...'"
 			/>
 			<div class="spacer" />
-			<v-checkbox :disabled="isExisting" block v-model="autoFill" :label="$t('auto_fill')" />
+			<v-checkbox v-if="!isExisting" block v-model="autoFill" :label="$t('auto_fill')" />
 			<v-icon class="arrow" name="arrow_forward" />
 			<v-icon class="arrow" name="arrow_backward" />
 		</div>
@@ -225,7 +239,6 @@
 			<v-input
 				:class="{ matches: junctionFieldExists(relations[0].sort_field) }"
 				v-model="relations[0].sort_field"
-				:nullable="false"
 				:placeholder="$t('add_sort_field') + '...'"
 				db-safe
 			>
@@ -346,7 +359,7 @@ export default defineComponent({
 		const junctionFields = computed(() => {
 			if (!junctionCollection.value) return [];
 
-			return fieldsStore.getFieldsForCollection(junctionCollection.value).map((field: Field) => ({
+			return fieldsStore.getFieldsForCollectionAlphabetical(junctionCollection.value).map((field: Field) => ({
 				text: field.field,
 				value: field.field,
 				disabled:
@@ -461,12 +474,12 @@ export default defineComponent({
 		pointer-events: none;
 
 		&:first-of-type {
-			bottom: 141px;
+			top: 117px;
 			left: 32.5%;
 		}
 
 		&:last-of-type {
-			bottom: 76px;
+			top: 190px;
 			left: 67.4%;
 		}
 	}
@@ -498,7 +511,7 @@ export default defineComponent({
 		--v-icon-color: var(--primary);
 
 		position: absolute;
-		bottom: 14px;
+		bottom: 17px;
 		left: 50%;
 		transform: translateX(-50%);
 	}

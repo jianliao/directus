@@ -2,7 +2,7 @@ import storage from '../storage';
 import sharp, { ResizeOptions } from 'sharp';
 import database from '../database';
 import path from 'path';
-import Knex from 'knex';
+import { Knex } from 'knex';
 import { Accountability, AbstractServiceOptions, Transformation } from '../types';
 import { AuthorizationService } from './authorization';
 import { Range } from '@directus/drive';
@@ -47,7 +47,7 @@ export class AssetsService {
 
 			const assetFilename =
 				path.basename(file.filename_disk, path.extname(file.filename_disk)) +
-				this.getAssetSuffix(resizeOptions) +
+				this.getAssetSuffix(transformation) +
 				path.extname(file.filename_disk);
 
 			const { exists } = await storage.disk(file.storage).exists(assetFilename);
@@ -62,8 +62,11 @@ export class AssetsService {
 
 			const readStream = storage.disk(file.storage).getStream(file.filename_disk, range);
 			const transformer = sharp().rotate().resize(resizeOptions);
+			if (transformation.quality) {
+				transformer.toFormat(type.substring(6), { quality: Number(transformation.quality) });
+			}
 
-			await storage.disk(file.storage).put(assetFilename, readStream.pipe(transformer));
+			await storage.disk(file.storage).put(assetFilename, readStream.pipe(transformer), type);
 
 			return {
 				stream: storage.disk(file.storage).getStream(assetFilename, range),
@@ -89,12 +92,12 @@ export class AssetsService {
 		return resizeOptions;
 	}
 
-	private getAssetSuffix(resizeOptions: ResizeOptions) {
-		if (Object.keys(resizeOptions).length === 0) return '';
+	private getAssetSuffix(transformation: Transformation) {
+		if (Object.keys(transformation).length === 0) return '';
 
 		return (
 			'__' +
-			Object.entries(resizeOptions)
+			Object.entries(transformation)
 				.sort((a, b) => (a[0] > b[0] ? 1 : -1))
 				.map((e) => e.join('_'))
 				.join(',')

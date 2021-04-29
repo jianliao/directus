@@ -6,7 +6,7 @@
 			{{ $t('disabled') }}
 		</v-notice>
 
-		<div class="image-preview" v-else-if="image" :class="{ 'is-svg': image.type.includes('svg') }">
+		<div class="image-preview" v-else-if="image" :class="{ 'is-svg': image.type && image.type.includes('svg') }">
 			<img :src="src" alt="" role="presentation" />
 
 			<div class="shadow" />
@@ -239,7 +239,7 @@ img {
 
 .is-svg {
 	padding: 32px;
-	background-color: var(--background-normal);
+	background-color: var(--background-normal-alt);
 
 	img {
 		object-fit: contain;

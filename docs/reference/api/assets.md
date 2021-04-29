@@ -2,6 +2,17 @@
 
 > The `/assets` endpoint can be used to stream or retrieve the actual file contents from assets managed within Directus.
 
+- [Accessing an Original File](#accessing-an-original-file)
+- [Requesting a Thumbnail](#requesting-a-thumbnail)
+- [Downloading a File](#downloading-a-file)
+
+::: tip Uploading Files
+
+To learn more about uploading files, see the [Upload a File](/reference/api/system/files/#upload-a-file) and
+[Import a File](<(/reference/api/system/files/#import-a-file)>) endpoints.
+
+:::
+
 ## Accessing an Original File
 
 The location of your actual file originals is based on the project's configuration, but you can consistently access them
@@ -26,7 +37,7 @@ permissions and other built-in features.
 
 Fetching thumbnails is as easy as adding query parameters to the original file's URL. If a requested thumbnail doesn't
 yet exist, it is dynamically generated and immediately returned. When requesting a thumbnail, the following parameters
-are all required.
+are all required, supports thumbnail for `jpeg`,`png` and `webp`
 
 - **`fit`** — The **fit** of the thumbnail while always preserving the aspect ratio, can be any of the following
   options:
@@ -38,7 +49,7 @@ are all required.
     and height
 - **`width`** — The **width** of the thumbnail in pixels
 - **`height`** — The **height** of the thumbnail in pixels
-- **`quality`** — The **quality** of the thumbnail (`0` to `100`)
+- **`quality`** — The **quality** of the thumbnail (`1` to `100`) is `Optional`
 - **`withoutEnlargement`** — Disable image up-scaling
 - **`download`** — Add `Content-Disposition` header and force browser to download file
 

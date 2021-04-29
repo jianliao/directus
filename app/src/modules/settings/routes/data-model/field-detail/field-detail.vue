@@ -12,7 +12,6 @@
 				<v-notice>
 					<div>
 						{{ $t('this_will_auto_setup_fields_relations') }}
-						<br />
 						<button class="manual-toggle" @click="translationsManual = true">{{ $t('click_here') }}</button>
 						{{ $t('to_manually_setup_translations') }}
 					</div>
@@ -101,7 +100,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref, computed, reactive, PropType, watch, toRefs } from '@vue/composition-api';
+import { defineComponent, ref, computed, PropType, toRefs } from '@vue/composition-api';
 import SetupTabs from './components/tabs.vue';
 import SetupActions from './components/actions.vue';
 import SetupSchema from './components/schema.vue';
